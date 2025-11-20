@@ -65,40 +65,17 @@ function App() {
         setVttFiles([...vttFiles, ...event.target.files].toSorted((a, b) => a.name.localeCompare(b.name)))
     }
 
-    const handleDownload = async () => {
-        let writeFns = []
-        const dfs = async (idx, len) => {
-            if (idx >= len) {
-                for (const fn of writeFns) {
-                    await fn()
-                }
-                return
-            }
-            const vttFile = vttFiles[idx]
+    const handleDownload = () => {
+        vttFiles.forEach((vttFile, idx) => {
             const reader = new FileReader()
-            reader.onload = (event) => {
+            reader.onload = async (event) => {
                 const vtt = event.target.result
                 const lrc = vtt2lrc(vtt)
-                const bytes = new TextEncoder().encode(lrc)
-                const fs = streamSaver.createWriteStream(
-                    rename(vttFile.name),
-                    {
-                        size: bytes.byteLength,
-                        writableStrategy: undefined,
-                        readableStrategy: undefined
-                    }
-                )
-                writeFns.push(
-                    async () => {
-                        await new Response(bytes).body
-                            .pipeTo(fs)
-                    }
-                )
-                dfs(idx + 1, len)
+                const fs = streamSaver.createWriteStream(rename(vttFile.name), {})
+                await new Response(lrc).body.pipeTo(fs)
             }
-            reader.readAsText(vttFiles[idx])
-        }
-        await dfs(0, vttFiles.length)
+            reader.readAsText(vttFile)
+        })
     }
 
     return (
