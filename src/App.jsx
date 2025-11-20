@@ -2,6 +2,8 @@ import './App.css'
 import * as parser from './parser'
 
 import streamSaver from 'streamsaver'
+// import ZipStream from 'zip-stream';
+import JSZip from 'jszip';
 
 import { useState } from 'react';
 
@@ -65,17 +67,29 @@ function App() {
         setVttFiles([...vttFiles, ...event.target.files].toSorted((a, b) => a.name.localeCompare(b.name)))
     }
 
-    const handleDownload = () => {
-        vttFiles.forEach((vttFile, idx) => {
+    const handleDownload = async () => {
+        const zip = new JSZip()
+
+        const dfs = async (idx, len) => {
+            if (idx >= len) {
+                zip.generateAsync({ type: "blob" }).then((content) => {
+                    const fileStream = streamSaver.createWriteStream('archive.zip')
+                    new Response(content).body.pipeTo(fileStream)
+                });
+                return
+            }
+            const vttFile = vttFiles[idx]
             const reader = new FileReader()
-            reader.onload = async (event) => {
+            reader.onload = (event) => {
                 const vtt = event.target.result
                 const lrc = vtt2lrc(vtt)
-                const fs = streamSaver.createWriteStream(rename(vttFile.name), {})
-                await new Response(lrc).body.pipeTo(fs)
+                zip.file(rename(vttFile.name), lrc)
+                dfs(idx + 1, len)
             }
             reader.readAsText(vttFile)
-        })
+        }
+
+        dfs(0, vttFiles.length)
     }
 
     return (

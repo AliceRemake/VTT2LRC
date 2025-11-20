@@ -8,11 +8,13 @@
     "@fontsource/inter": "^5.2.8",
     "@mui/icons-material": "^7.3.5",
     "@mui/joy": "^5.0.0-beta.52",
+    "jszip": "^3.10.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-scripts": "5.0.1",
     "streamsaver": "^2.0.6",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "zip-stream": "^7.0.2"
   },
   "scripts": {
     "start": "react-scripts start",
