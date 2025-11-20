@@ -65,28 +65,40 @@ function App() {
         setVttFiles([...vttFiles, ...event.target.files].toSorted((a, b) => a.name.localeCompare(b.name)))
     }
 
-    const handleDownload = () => {
-        const dfs = (idx, len) => {
-            if (idx >= len) { return }
+    const handleDownload = async () => {
+        let writeFns = []
+        const dfs = async (idx, len) => {
+            if (idx >= len) {
+                for (const fn of writeFns) {
+                    await fn()
+                }
+                return
+            }
             const vttFile = vttFiles[idx]
             const reader = new FileReader()
-            reader.onload = async (event) => {
+            reader.onload = (event) => {
                 const vtt = event.target.result
                 const lrc = vtt2lrc(vtt)
-                console.log(idx)
                 const bytes = new TextEncoder().encode(lrc)
-                const fs = streamSaver.createWriteStream(rename(vttFile.name), {
-                    size: bytes.byteLength,
-                    writableStrategy: undefined,
-                    readableStrategy: undefined
-                })
-                await new Response('StreamSaver is awesome').body
-                    .pipeTo(fs)
+                const fs = streamSaver.createWriteStream(
+                    rename(vttFile.name),
+                    {
+                        size: bytes.byteLength,
+                        writableStrategy: undefined,
+                        readableStrategy: undefined
+                    }
+                )
+                writeFns.push(
+                    async () => {
+                        await new Response(bytes).body
+                            .pipeTo(fs)
+                    }
+                )
                 dfs(idx + 1, len)
             }
             reader.readAsText(vttFiles[idx])
         }
-        dfs(0, vttFiles.length)
+        await dfs(0, vttFiles.length)
     }
 
     return (
