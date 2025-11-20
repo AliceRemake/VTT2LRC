@@ -73,15 +73,15 @@ function App() {
             reader.onload = async (event) => {
                 const vtt = event.target.result
                 const lrc = vtt2lrc(vtt)
+                console.log(idx)
                 const bytes = new TextEncoder().encode(lrc)
                 const fs = streamSaver.createWriteStream(rename(vttFile.name), {
                     size: bytes.byteLength,
                     writableStrategy: undefined,
                     readableStrategy: undefined
                 })
-                const writer = fs.getWriter()
-                await writer.write(bytes)
-                writer.close()
+                new Response('StreamSaver is awesome').body
+                    .pipeTo(fs)
                 dfs(idx + 1, len)
             }
             reader.readAsText(vttFiles[idx])
