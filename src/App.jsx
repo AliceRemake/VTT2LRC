@@ -4,11 +4,12 @@ import streamSaver from 'streamsaver'
 
 import { useState } from 'react';
 
-import { Box, Button, Stack } from '@mui/material';
+import { Box, Button, Sheet, Stack } from '@mui/joy';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
-import { styled } from '@mui/material/styles';
+import { styled } from '@mui/joy/styles';
+
 const InvisiableInput = styled('input')({
     clip: 'rect(0 0 0 0)',
     clipPath: 'inset(50%)',
@@ -21,6 +22,16 @@ const InvisiableInput = styled('input')({
     width: 1,
 });
 
+const Item = styled(Sheet)(({ theme }) => ({
+    ...theme.typography['body-sm'],
+    textAlign: 'center',
+    fontWeight: theme.fontWeight.md,
+    color: theme.vars.palette.text.secondary,
+    border: '1px solid',
+    borderColor: theme.palette.divider,
+    padding: theme.spacing(1),
+    borderRadius: theme.radius.md,
+}));
 
 function App() {
 
@@ -159,7 +170,7 @@ function App() {
     }
 
     const handleUpload = (event) => {
-        setVttFiles([...vttFiles, ...event.target.files])
+        setVttFiles([...vttFiles, ...event.target.files].toSorted((a, b) => a.name.localeCompare(b.name)))
     }
 
     const handleDownload = () => {
@@ -187,12 +198,23 @@ function App() {
     }
 
     return (
-        <Box>
-            <Stack>
+        <Box sx={{
+            width: '100%',
+            padding: '10px 0px',
+        }}>
+            <Stack
+                direction="column"
+                spacing={1}
+                sx={{
+                    margin: '0px 10px',
+                    justifyContent: "center",
+                    alignItems: "stretch",
+                }}
+            >
                 <Button
                     component='label'
-                    variant='contained'
-                    startIcon={< FileUploadIcon />}
+                    variant='solid'
+                    startDecorator={< FileUploadIcon />}
                 >
                     选择文件
                     < InvisiableInput
@@ -202,21 +224,29 @@ function App() {
                         multiple
                     />
                 </Button >
-                {
-                    // TODO
-                    vttFiles.map((vttFile, index) => {
-                        return <div key={index}>{vttFile.name}</div>
-                    })
-                }
                 <Button
-                    variant='contained'
-                    startIcon={<FileDownloadIcon />}
+                    variant='solid'
+                    startDecorator={<FileDownloadIcon />}
                     onClick={handleDownload}
                 >
                     转换并保存
                 </Button>
-            </Stack >
-        </Box >
+                <Stack
+                    direction="column"
+                    spacing={1}
+                    sx={{
+                        justifyContent: "center",
+                        alignItems: "stretch",
+                    }}
+                >
+                    {
+                        vttFiles.map((vttFile, index) => {
+                            return <Item key={index}>{vttFile.name}</Item>
+                        })
+                    }
+                </Stack >
+            </Stack>
+        </Box>
     );
 }
 
