@@ -1,16 +1,15 @@
 import './App.css'
-import * as parser from './parser'
+import subsrt from './3rdparty/subsrt/subsrt'
 
-import streamSaver from 'streamsaver'
-// import ZipStream from 'zip-stream';
 import JSZip from 'jszip';
+import streamSaver from 'streamsaver'
 
 import { useState } from 'react';
 
+import { styled } from '@mui/joy/styles';
 import { Box, Button, Sheet, Stack } from '@mui/joy';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import { styled } from '@mui/joy/styles';
 
 const InvisiableInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -44,12 +43,6 @@ function App() {
 
     const [vttFiles, setVttFiles] = useState([])
 
-    const vtt2lrc = (vtt) => {
-        const captions = parser.parseVTT(vtt)
-        const lrc = parser.buildLRC(captions)
-        return lrc
-    }
-
     const rename = (filename) => {
         filename = filename.split('.');
         filename.pop();
@@ -69,7 +62,6 @@ function App() {
 
     const handleDownload = async () => {
         const zip = new JSZip()
-
         const dfs = async (idx, len) => {
             if (idx >= len) {
                 zip.generateAsync({ type: "blob" }).then((content) => {
@@ -82,13 +74,12 @@ function App() {
             const reader = new FileReader()
             reader.onload = (event) => {
                 const vtt = event.target.result
-                const lrc = vtt2lrc(vtt)
+                const lrc = subsrt.convert(vtt, { format: "lrc" });
                 zip.file(rename(vttFile.name), lrc)
                 dfs(idx + 1, len)
             }
             reader.readAsText(vttFile)
         }
-
         dfs(0, vttFiles.length)
     }
 
