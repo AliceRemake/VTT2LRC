@@ -66,25 +66,27 @@ function App() {
     }
 
     const handleDownload = () => {
-        vttFiles.forEach((vttFile, i) => {
-            setTimeout(() => {
-                const reader = new FileReader()
-                reader.onload = (event) => {
-                    const vtt = event.target.result
-                    const lrc = vtt2lrc(vtt)
-                    const bytes = new TextEncoder().encode(lrc)
-                    const fs = streamSaver.createWriteStream(rename(vttFile.name), {
-                        size: bytes.byteLength,
-                        writableStrategy: undefined,
-                        readableStrategy: undefined
-                    })
-                    const writer = fs.getWriter()
-                    writer.write(bytes)
-                    writer.close()
-                }
-                reader.readAsText(vttFile)
-            }, i * 1000)
-        })
+        const dfs = (idx, len) => {
+            if (idx >= len) { return }
+            const vttFile = vttFiles[idx]
+            const reader = new FileReader()
+            reader.onload = async (event) => {
+                const vtt = event.target.result
+                const lrc = vtt2lrc(vtt)
+                const bytes = new TextEncoder().encode(lrc)
+                const fs = streamSaver.createWriteStream(rename(vttFile.name), {
+                    size: bytes.byteLength,
+                    writableStrategy: undefined,
+                    readableStrategy: undefined
+                })
+                const writer = fs.getWriter()
+                await writer.write(bytes)
+                writer.close()
+                dfs(idx + 1, len)
+            }
+            reader.readAsText(vttFiles[idx])
+        }
+        dfs(0, vttFiles.length)
     }
 
     return (
