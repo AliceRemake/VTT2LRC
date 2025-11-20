@@ -80,7 +80,7 @@ function App() {
                     writableStrategy: undefined,
                     readableStrategy: undefined
                 })
-                new Response('StreamSaver is awesome').body
+                await new Response('StreamSaver is awesome').body
                     .pipeTo(fs)
                 dfs(idx + 1, len)
             }
